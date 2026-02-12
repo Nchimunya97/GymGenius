@@ -1,0 +1,96 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuth() && request.auth.token.admin == true;
+    }
+
+    function isUser(uid) {
+      return isAuth() && request.auth.uid == uid;
+    }
+
+    function userExists(uid) {
+      return exists(/databases/$(database)/documents/users/$(uid));
+    }
+
+    function getUserRole(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data.role;
+    }
+
+    function isTrainerOf(traineeId) {
+      return isAuth() && get(/databases/$(database)/documents/users/$(traineeId)).data.trainerId == request.auth.uid;
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Users can read and write their own profile
+      allow read: if isUser(userId);
+      allow create: if isUser(userId) && request.resource.data.keys().hasAll(['email', 'role', 'createdAt']);
+      allow update: if isUser(userId);
+      allow delete: if false; // Users cannot delete their account via client
+
+      // Authenticated users can read all trainers (for discovery)
+      allow read: if isAuth() && getUserRole(userId) == 'trainer';
+
+      // Trainers can read trainee profiles of their clients
+      allow read: if isAuth() && (
+        getUserRole(userId) == 'trainee' && isTrainerOf(userId)
+      );
+    }
+
+    // Workouts collection
+    match /workouts/{workoutId} {
+      // Users can read and write their own workouts
+      allow read: if isAuth() && resource.data.ownerId == request.auth.uid;
+      allow create: if isAuth() && request.resource.data.ownerId == request.auth.uid && 
+                       request.resource.data.keys().hasAll(['ownerId', 'timestamp', 'muscleGroups']);
+      allow update: if isAuth() && resource.data.ownerId == request.auth.uid;
+      allow delete: if isAuth() && resource.data.ownerId == request.auth.uid;
+
+      // Trainers can read workouts of their trainees
+      allow read: if isAuth() && 
+                     get(/databases/$(database)/documents/users/$(resource.data.ownerId)).data.trainerId == request.auth.uid;
+
+      // Exercises sub-collection
+      match /exercises/{exerciseId} {
+        allow read: if isAuth() && (
+          request.auth.uid == get(/databases/$(database)/documents/workouts/$(workoutId)).data.ownerId ||
+          get(/databases/$(database)/documents/users/$(get(/databases/$(database)/documents/workouts/$(workoutId)).data.ownerId)).data.trainerId == request.auth.uid
+        );
+        allow create, update, delete: if isAuth() && 
+                                          request.auth.uid == get(/databases/$(database)/documents/workouts/$(workoutId)).data.ownerId;
+      }
+    }
+
+    // Connections collection (trainer-trainee relationships)
+    match /connections/{connectionId} {
+      // Users can read their own connections
+      allow read: if isAuth() && (
+        request.auth.uid == resource.data.trainerId || 
+        request.auth.uid == resource.data.traineeId
+      );
+
+      // Trainees can request a trainer (create pending connection)
+      allow create: if isAuth() && request.resource.data.traineeId == request.auth.uid &&
+                       request.resource.data.status == 'pending';
+
+      // Trainers can accept/reject connections
+      allow update: if isAuth() && resource.data.trainerId == request.auth.uid;
+      allow delete: if isAuth() && (
+        request.auth.uid == resource.data.trainerId || 
+        request.auth.uid == resource.data.traineeId
+      );
+    }
+  }
+}
+

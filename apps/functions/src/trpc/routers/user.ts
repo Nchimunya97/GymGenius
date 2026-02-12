@@ -7,22 +7,38 @@ export const userRouter = router({
     .input(CreateUserSchema)
     .output(UserSchema)
     .mutation(({ input }) => ({
-      id: 'dummy-id',
+      uid: 'dummy-id',
       email: input.email,
-      name: input.name,
+      role: input.role,
+      displayName: input.displayName,
+      createdAt: Date.now(),
     })),
 
   getById: publicProcedure
     .input(z.string())
     .output(UserSchema)
     .query(({ input }) => ({
-      id: input,
+      uid: input,
       email: 'test@example.com',
-      name: 'Test User',
+      role: 'trainee' as const,
+      displayName: 'Test User',
+      createdAt: Date.now(),
     })),
 
   list: publicProcedure.output(z.array(UserSchema)).query(() => [
-    { id: 'user-1', email: 'user1@example.com', name: 'User One' },
-    { id: 'user-2', email: 'user2@example.com', name: 'User Two' },
+    {
+      uid: 'user-1',
+      email: 'user1@example.com',
+      role: 'trainee' as const,
+      displayName: 'User One',
+      createdAt: Date.now(),
+    },
+    {
+      uid: 'user-2',
+      email: 'user2@example.com',
+      role: 'trainer' as const,
+      displayName: 'User Two',
+      createdAt: Date.now(),
+    },
   ]),
 })

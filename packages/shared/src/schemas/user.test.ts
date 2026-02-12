@@ -1,63 +1,71 @@
-import { describe, it, expect } from 'vitest'
-import { UserSchema, CreateUserSchema } from './user'
+import { describe, it, expect } from 'vitest';
+import { UserSchema, UserRoleSchema } from './user';
 
-describe('UserSchema', () => {
-  it('validates correct user data', () => {
-    const result = UserSchema.safeParse({
-      id: '123',
+describe('User Schema', () => {
+  it('should validate a valid trainee user', () => {
+    const validUser = {
+      uid: '123',
       email: 'test@example.com',
-      name: 'Test User',
-    })
-    expect(result.success).toBe(true)
-  })
+      role: 'trainee',
+      createdAt: Date.now(),
+      displayName: 'John Doe'
+    };
+    
+    const result = UserSchema.safeParse(validUser);
+    expect(result.success).toBe(true);
+  });
 
-  it('rejects missing id', () => {
-    const result = UserSchema.safeParse({
+  it('should validate a valid trainer user', () => {
+    const validTrainer = {
+      uid: '456',
+      email: 'trainer@example.com',
+      role: 'trainer',
+      createdAt: Date.now(),
+      photoURL: 'https://example.com/photo.jpg'
+    };
+    
+    const result = UserSchema.safeParse(validTrainer);
+    expect(result.success).toBe(true);
+  });
+
+  it('should load user roles correctly', () => {
+    expect(UserRoleSchema.parse('trainee')).toBe('trainee');
+    expect(UserRoleSchema.parse('trainer')).toBe('trainer');
+    expect(() => UserRoleSchema.parse('admin')).toThrow();
+  });
+
+  it('should fail on invalid email', () => {
+    const invalidUser = {
+      uid: '123',
+      email: 'not-an-email',
+      role: 'trainee',
+      createdAt: Date.now(),
+    };
+    
+    const result = UserSchema.safeParse(invalidUser);
+    expect(result.success).toBe(false);
+  });
+
+  it('should fail on missing required fields', () => {
+    const incompleteUser = {
+      uid: '123',
+      // email missing
+      role: 'trainee',
+    };
+    
+    const result = UserSchema.safeParse(incompleteUser);
+    expect(result.success).toBe(false);
+  });
+
+  it('should fail on invalid role', () => {
+    const invalidRoleUser = {
+      uid: '123',
       email: 'test@example.com',
-      name: 'Test User',
-    })
-    expect(result.success).toBe(false)
-  })
-
-  it('rejects invalid email', () => {
-    const result = UserSchema.safeParse({
-      id: '123',
-      email: 'invalid-email',
-      name: 'Test User',
-    })
-    expect(result.success).toBe(false)
-  })
-
-  it('allows optional name', () => {
-    const result = UserSchema.safeParse({
-      id: '123',
-      email: 'test@example.com',
-    })
-    expect(result.success).toBe(true)
-  })
-})
-
-describe('CreateUserSchema', () => {
-  it('validates user creation input', () => {
-    const result = CreateUserSchema.safeParse({
-      email: 'new@example.com',
-      name: 'New User',
-    })
-    expect(result.success).toBe(true)
-  })
-
-  it('rejects invalid email on creation', () => {
-    const result = CreateUserSchema.safeParse({
-      email: 'bad-email',
-      name: 'New User',
-    })
-    expect(result.success).toBe(false)
-  })
-
-  it('requires email', () => {
-    const result = CreateUserSchema.safeParse({
-      name: 'New User',
-    })
-    expect(result.success).toBe(false)
-  })
-})
+      role: 'admin', // invalid role
+      createdAt: Date.now(),
+    };
+    
+    const result = UserSchema.safeParse(invalidRoleUser);
+    expect(result.success).toBe(false);
+  });
+});

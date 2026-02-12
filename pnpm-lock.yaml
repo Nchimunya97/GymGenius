@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      firebase:
+        specifier: ^12.9.0
+        version: 12.9.0
     devDependencies:
       '@changesets/cli':
         specifier: ^2.27.1
@@ -78,18 +82,12 @@ importers:
       '@trpc/react-query':
         specifier: ^11.0.0-rc.660
         version: 11.10.0(@tanstack/react-query@5.90.21(react@18.3.1))(@trpc/client@11.10.0(@trpc/server@11.10.0(typescript@5.5.4))(typescript@5.5.4))(@trpc/server@11.10.0(typescript@5.5.4))(react@18.3.1)(typescript@5.5.4)
-      firebase:
-        specifier: ^12.9.0
-        version: 12.9.0
       react:
         specifier: ^18.3.1
         version: 18.3.1
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
-      zod:
-        specifier: ^3.25.76
-        version: 3.25.76
     devDependencies:
       '@repo/config':
         specifier: workspace:*
@@ -3597,7 +3595,7 @@ snapshots:
   '@grpc/grpc-js@1.9.15':
     dependencies:
       '@grpc/proto-loader': 0.7.15
-      '@types/node': 12.20.55
+      '@types/node': 25.2.3
 
   '@grpc/proto-loader@0.7.15':
     dependencies:

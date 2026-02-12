@@ -10,32 +10,34 @@ describe('userRouter', () => {
     it('creates a user with valid data', async () => {
       const result = await caller.user.create({
         email: 'test@example.com',
-        name: 'Test User',
+        role: 'trainee',
+        displayName: 'Test User',
       })
-      expect(result.id).toBeDefined()
+      expect(result.uid).toBeDefined()
       expect(result.email).toBe('test@example.com')
-      expect(result.name).toBe('Test User')
+      expect(result.displayName).toBe('Test User')
     })
 
     it('returns a dummy id', async () => {
       const result = await caller.user.create({
         email: 'another@example.com',
+        role: 'trainee',
       })
-      expect(result.id).toBe('dummy-id')
+      expect(result.uid).toBe('dummy-id')
     })
   })
 
   describe('getById', () => {
     it('returns a user by id', async () => {
       const result = await caller.user.getById('user-123')
-      expect(result.id).toBe('user-123')
+      expect(result.uid).toBe('user-123')
       expect(result.email).toBeDefined()
     })
 
     it('returns dummy data', async () => {
       const result = await caller.user.getById('any-id')
       expect(result.email).toBe('test@example.com')
-      expect(result.name).toBe('Test User')
+      expect(result.displayName).toBe('Test User')
     })
   })
 
