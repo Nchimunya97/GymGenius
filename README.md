@@ -16,7 +16,8 @@ Insightful Analytics: Visual charts and breakdowns of your performance over time
 
 Custom Routines: Create and save your favorite workout splits.
 
-🛠 Tech Stack
+Tech Stack
+
 Frontend: [Insert e.g., React/Next.js]
 
 Backend: [Insert e.g., Node.js/Firebase]
