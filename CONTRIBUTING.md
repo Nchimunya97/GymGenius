@@ -1,6 +1,6 @@
-# Contributing to The Hytel Way
+# Contributing to GymGenius 
 
-Thank you for your interest in contributing to this project! This guide will help you get started.
+First off, thank you for considering contributing!
 
 ## Development Setup
 
