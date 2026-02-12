@@ -1,23 +1,29 @@
-# The Hytel Way: Monorepo Stack
+ GymGenius - App
 
-A production-ready monorepo template featuring React, TypeScript, Tailwind CSS, Shadcn UI, tRPC, and TanStack Query. Built with pnpm and Turborepo for optimal developer experience.
+Elevate your gains with modern, real-time fitness tracking.
 
-## Stack Overview
+GymGenius is a sleek, performance-focused workout application designed for athletes who want to visualize their progress as it happens. No more messy notebooks—just data-driven results.
 
-Think of building a web app like putting on a theater production!
+Key Features Include
 
-| Tool               | Role            | Analogy                                        |
-| ------------------ | --------------- | ---------------------------------------------- |
-| **pnpm**           | Package Manager | The super-organized prop master                |
-| **Turborepo**      | Build System    | The stage manager coordinating tasks           |
-| **React + Vite**   | Frontend        | The stage and lighting system                  |
-| **TypeScript**     | Type Safety     | The script ensuring everyone knows their lines |
-| **Tailwind CSS**   | Styling         | The costume designer's fabric swatches         |
-| **Shadcn UI**      | Components      | Pre-made costume patterns                      |
-| **tRPC**           | API Layer       | The messenger between actors                   |
-| **TanStack Query** | Data Fetching   | Smart caching (remembers the script!)          |
-| **Vitest**         | Testing         | Dress rehearsals before the show               |
-| **Zod**            | Validation      | The bouncer checking IDs                       |
+Real-Time Progress Monitoring: Watch your volume, intensity, and personal records update instantly as you log your sets.
+
+Modern UI/UX: A clean, intuitive interface designed for quick data entry during intense gym sessions.
+
+Comprehensive Workout Logging: Track exercises, sets, reps, and weights with ease.
+
+Insightful Analytics: Visual charts and breakdowns of your performance over time to help you break through plateaus.
+
+Custom Routines: Create and save your favorite workout splits.
+
+🛠 Tech Stack
+Frontend: [Insert e.g., React/Next.js]
+
+Backend: [Insert e.g., Node.js/Firebase]
+
+Database: [Insert e.g., MongoDB/PostgreSQL]
+
+Styling: [Insert e.g., Tailwind CSS]|
 
 ## Monorepo Structure
 
