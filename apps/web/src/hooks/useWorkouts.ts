@@ -1,24 +1,15 @@
 import { useState, useEffect } from 'react'
 import { db } from '@/lib/firebase'
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  Unsubscribe,
-  addDoc,
-} from 'firebase/firestore'
-import { useAuth } from '@/contexts/AuthContext'
-import type { Workout, Exercise, CreateWorkout } from '@repo/shared'
+import { collection, query, where, orderBy, onSnapshot, addDoc } from 'firebase/firestore'
+import type { Workout, CreateWorkout } from '@repo/shared'
 
 export function useWorkouts(userId: string | undefined) {
-  const { user } = useAuth()
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
+    // 1. Critical: If no userId, stop and clear the list
     if (!userId) {
       setWorkouts([])
       setLoading(false)
@@ -26,58 +17,49 @@ export function useWorkouts(userId: string | undefined) {
     }
 
     setLoading(true)
-    let unsubscribe: Unsubscribe
 
-    try {
-      const q = query(
-        collection(db, 'workouts'),
-        where('ownerId', '==', userId),
-        orderBy('timestamp', 'desc')
-      )
+    // 2. Build the query to match your NEW Security Rules
+    const q = query(
+      collection(db, 'workouts'),
+      where('ownerId', '==', userId), // Matches "ownerId" in rules
+      orderBy('timestamp', 'desc')
+    )
 
-      unsubscribe = onSnapshot(
-        q,
-        snapshot => {
-          const newWorkouts = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as Workout[]
-          setWorkouts(newWorkouts)
-          setLoading(false)
-        },
-        err => {
-          console.error('Error fetching workouts:', err)
-          setError(err)
-          setLoading(false)
-        }
-      )
-    } catch (err) {
-      console.error('Error setting up subscription:', err)
-      setError(err instanceof Error ? err : new Error('Unknown error'))
-      setLoading(false)
-    }
+    // 3. Set up the Real-time Listener
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        const newWorkouts = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Workout[]
 
-    return () => {
-      if (unsubscribe) {
-        unsubscribe()
+        console.log(`Loaded ${newWorkouts.length} workouts for user ${userId}`)
+        setWorkouts(newWorkouts)
+        setLoading(false)
+      },
+      err => {
+        console.error('Firestore Subscription Error:', err)
+        setError(err)
+        setLoading(false)
       }
-    }
-  }, [userId])
+    )
+
+    // 4. Cleanup on unmount or when userId changes
+    return () => unsubscribe()
+  }, [userId]) // Properly re-runs when the user logs in after a reload
 
   const createWorkout = async (data: CreateWorkout): Promise<Workout> => {
-    if (!user) throw new Error('No authenticated user')
+    if (!userId) throw new Error('No authenticated user ID provided')
 
     const workoutData = {
-      ownerId: user.uid,
-      timestamp: Date.now(),
       ...data,
+      ownerId: userId, // Ensures data matches your query and rules
+      timestamp: Date.now(),
     }
 
     const docRef = await addDoc(collection(db, 'workouts'), workoutData)
-    return {
-      id: docRef.id,
-      ...workoutData,
-    } as Workout
+    return { id: docRef.id, ...workoutData } as Workout
   }
 
   return { workouts, loading, error, createWorkout }

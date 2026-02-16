@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "gymgenius-2f2bf"
+  },
+  "targets": {
+    "gymgenius-2f2bf": {
+      "hosting": {
+        "web": [
+          "gymgenius-2f2bf"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
