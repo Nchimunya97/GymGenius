@@ -2,21 +2,24 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import {
   User,
   onAuthStateChanged,
-  signInWithPopup,
   signOut,
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPopup,
+  sendPasswordResetEmail,
 } from 'firebase/auth'
-import { auth } from '@/lib/firebase'
+import { auth, db } from '@/lib/firebase'
+import { doc, setDoc } from 'firebase/firestore'
 import { useUserProfile } from '@/hooks/useUserProfile'
 
 interface AuthContextType {
   user: User | null
   loading: boolean
   signInWithGoogle: () => Promise<void>
-  signUpWithEmail: (email: string, password: string) => Promise<void>
+  signUpWithEmail: (email: string, password: string, role?: string) => Promise<void>
   signInWithEmail: (email: string, password: string) => Promise<void>
+  resetPassword: (email: string) => Promise<void>
   logOut: () => Promise<void>
 }
 
@@ -43,12 +46,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signInWithPopup(auth, provider)
   }
 
-  const signUpWithEmail = async (email: string, password: string) => {
-    await createUserWithEmailAndPassword(auth, email, password)
+  const signUpWithEmail = async (email: string, password: string, role: string = 'trainee') => {
+    const result = await createUserWithEmailAndPassword(auth, email, password)
+
+    // Store role in Firestore
+    try {
+      const userRef = doc(db, 'users', result.user.uid)
+      await setDoc(
+        userRef,
+        {
+          uid: result.user.uid,
+          email: result.user.email || '',
+          role: role,
+          createdAt: Date.now(),
+          profileComplete: false,
+        },
+        { merge: true }
+      )
+    } catch (error) {
+      console.error('Error setting user role:', error)
+    }
   }
 
   const signInWithEmail = async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email, password)
+  }
+
+  const resetPassword = async (email: string) => {
+    await sendPasswordResetEmail(auth, email)
   }
 
   const logOut = async () => {
@@ -61,6 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithGoogle,
     signUpWithEmail,
     signInWithEmail,
+    resetPassword,
     logOut,
   }
 

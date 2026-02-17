@@ -25,7 +25,7 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [displayName, setDisplayName] = useState('')
-  const [role, setRole] = useState<'trainer' | 'trainee'>('trainee')
+  const [role, setRole] = useState<'admin' | 'trainer' | 'trainee'>('trainee')
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState<TabType>('home')
   const [showTimer, setShowTimer] = useState(false)
@@ -311,23 +311,37 @@ export function Dashboard() {
                 {isEditing ? (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-slate-200 mb-2">
+                      <label
+                        htmlFor="display-name"
+                        className="block text-sm font-medium text-slate-200 mb-2"
+                      >
                         Display Name
                       </label>
                       <input
+                        id="display-name"
                         type="text"
                         value={displayName}
                         onChange={e => setDisplayName(e.target.value)}
                         placeholder="Your display name"
+                        title="Enter your display name"
+                        aria-label="Display name for your account"
                         className="w-full px-4 py-2 bg-slate-700 border border-amber-500/30 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:bg-slate-700"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-200 mb-2">Role</label>
+                      <label
+                        htmlFor="role-select"
+                        className="block text-sm font-medium text-slate-200 mb-2"
+                      >
+                        Role
+                      </label>
                       <select
+                        id="role-select"
                         value={role}
                         onChange={e => setRole(e.target.value as 'trainer' | 'trainee')}
+                        title="Select your role: Trainer or Trainee"
+                        aria-label="Select your account role"
                         className="w-full px-4 py-2 bg-slate-700 border border-amber-500/30 rounded-lg text-white focus:outline-none focus:border-amber-500"
                       >
                         <option value="trainee">Trainee</option>

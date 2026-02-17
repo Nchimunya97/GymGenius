@@ -110,12 +110,16 @@ export function WorkoutBuilder() {
               {MUSCLE_GROUPS.map(group => (
                 <label
                   key={group}
+                  htmlFor={`muscle-group-${group}`}
                   className="flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-slate-700"
                 >
                   <input
+                    id={`muscle-group-${group}`}
                     type="checkbox"
                     checked={selectedMuscleGroups.includes(group)}
                     onChange={() => handleToggleMuscleGroup(group)}
+                    title={`Select ${group} for this workout`}
+                    aria-label={`${group} muscle group`}
                     className="w-4 h-4"
                   />
                   <span>{group}</span>
@@ -131,12 +135,17 @@ export function WorkoutBuilder() {
             {/* Current Exercise Form */}
             <div className="bg-slate-700/50 p-4 rounded-lg mb-4 space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Exercise Name</label>
+                <label htmlFor="exercise-name" className="block text-sm font-medium mb-1">
+                  Exercise Name
+                </label>
                 <input
+                  id="exercise-name"
                   type="text"
                   value={currentExercise}
                   onChange={e => setCurrentExercise(e.target.value)}
                   placeholder="e.g., Bench Press"
+                  title="Enter the name of the exercise"
+                  aria-label="Exercise name"
                   className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
@@ -157,7 +166,11 @@ export function WorkoutBuilder() {
                 {currentSets.map((set, idx) => (
                   <div key={idx} className="grid grid-cols-4 gap-2">
                     <div>
+                      <label htmlFor={`set-${idx}-reps`} className="text-xs text-slate-300">
+                        Reps
+                      </label>
                       <input
+                        id={`set-${idx}-reps`}
                         type="number"
                         value={set.reps}
                         onChange={e => {
@@ -166,11 +179,17 @@ export function WorkoutBuilder() {
                           setCurrentSets(newSets)
                         }}
                         placeholder="Reps"
+                        title="Number of repetitions for this set"
+                        aria-label={`Repetitions for set ${idx + 1}`}
                         className="w-full px-2 py-1 bg-slate-600 border border-slate-500 rounded text-white text-sm focus:outline-none focus:border-blue-500"
                       />
                     </div>
                     <div>
+                      <label htmlFor={`set-${idx}-weight`} className="text-xs text-slate-300">
+                        Weight
+                      </label>
                       <input
+                        id={`set-${idx}-weight`}
                         type="number"
                         value={set.weight}
                         onChange={e => {
@@ -179,11 +198,17 @@ export function WorkoutBuilder() {
                           setCurrentSets(newSets)
                         }}
                         placeholder="Weight (lbs)"
+                        title="Weight in pounds for this set"
+                        aria-label={`Weight in pounds for set ${idx + 1}`}
                         className="w-full px-2 py-1 bg-slate-600 border border-slate-500 rounded text-white text-sm focus:outline-none focus:border-blue-500"
                       />
                     </div>
                     <div>
+                      <label htmlFor={`set-${idx}-rest`} className="text-xs text-slate-300">
+                        Rest
+                      </label>
                       <input
+                        id={`set-${idx}-rest`}
                         type="number"
                         value={set.restDuration}
                         onChange={e => {
@@ -192,6 +217,8 @@ export function WorkoutBuilder() {
                           setCurrentSets(newSets)
                         }}
                         placeholder="Rest (sec)"
+                        title="Rest duration in seconds between sets"
+                        aria-label={`Rest duration in seconds for set ${idx + 1}`}
                         className="w-full px-2 py-1 bg-slate-600 border border-slate-500 rounded text-white text-sm focus:outline-none focus:border-blue-500"
                       />
                     </div>
@@ -242,11 +269,16 @@ export function WorkoutBuilder() {
 
           {/* Notes */}
           <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">Notes</label>
+            <label htmlFor="workout-notes" className="block text-sm font-medium mb-2">
+              Notes
+            </label>
             <textarea
+              id="workout-notes"
               value={notes}
               onChange={e => setNotes(e.target.value)}
               placeholder="How did you feel? Any observations?"
+              title="Add notes about this workout session"
+              aria-label="Workout notes and observations"
               className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white focus:outline-none focus:border-blue-500"
               rows={3}
             />

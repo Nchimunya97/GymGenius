@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { db } from '@/lib/firebase'
-import { collection, query, where, orderBy, onSnapshot, addDoc } from 'firebase/firestore'
+import { collection, query, where, orderBy, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore'
 import type { Workout, CreateWorkout } from '@repo/shared'
 
 export function useWorkouts(userId: string | undefined) {
@@ -62,5 +62,20 @@ export function useWorkouts(userId: string | undefined) {
     return { id: docRef.id, ...workoutData } as Workout
   }
 
-  return { workouts, loading, error, createWorkout }
+  const updateWorkout = async (id: string, updates: Partial<Workout>): Promise<void> => {
+    if (!userId) throw new Error('No authenticated user ID provided')
+    
+    const workoutRef = doc(db, 'workouts', id)
+    await updateDoc(workoutRef, {
+      ...updates,
+      ownerId: userId, // Ensure ownerId stays the same
+    })
+  }
+
+  const deleteWorkout = async (id: string): Promise<void> => {
+    const workoutRef = doc(db, 'workouts', id)
+    await deleteDoc(workoutRef)
+  }
+
+  return { workouts, loading, error, createWorkout, updateWorkout, deleteWorkout }
 }
