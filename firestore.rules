@@ -7,7 +7,8 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isAuth() && request.auth.token.admin == true;
+      return isAuth() && (request.auth.token.admin == true || 
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
     }
 
     function isUser(uid) {
@@ -23,7 +24,9 @@ service cloud.firestore {
     }
 
     function isTrainerOf(traineeId) {
-      return isAuth() && get(/databases/$(database)/documents/users/$(traineeId)).data.trainerId == request.auth.uid;
+      return isAuth() && 
+             userExists(traineeId) &&
+             get(/databases/$(database)/documents/users/$(traineeId)).data.trainerId == request.auth.uid;
     }
 
     // Default deny
@@ -35,41 +38,78 @@ service cloud.firestore {
     match /users/{userId} {
       // Users can read and write their own profile
       allow read: if isUser(userId);
-      allow create: if isUser(userId) && request.resource.data.keys().hasAll(['email', 'role', 'createdAt']);
+      allow create: if isUser(userId);
       allow update: if isUser(userId);
-      allow delete: if false; // Users cannot delete their account via client
+      allow delete: if isAdmin();
 
-      // Authenticated users can read all trainers (for discovery)
-      allow read: if isAuth() && getUserRole(userId) == 'trainer';
+      // All authenticated users can read all users (for discovery, messaging, trainer selection)
+      allow read: if isAuth();
 
-      // Trainers can read trainee profiles of their clients
-      allow read: if isAuth() && (
-        getUserRole(userId) == 'trainee' && isTrainerOf(userId)
-      );
+      // Goals subcollection
+      match /goals/{goalId} {
+        allow read: if isUser(userId);
+        allow create: if isUser(userId) && request.resource.data.title != null;
+        allow update: if isUser(userId);
+        allow delete: if isUser(userId);
+
+        // Trainers can read their trainee's goals
+        allow read: if isAuth() && isTrainerOf(userId);
+      }
     }
 
     // Workouts collection
     match /workouts/{workoutId} {
       // Users can read and write their own workouts
       allow read: if isAuth() && resource.data.ownerId == request.auth.uid;
-      allow create: if isAuth() && request.resource.data.ownerId == request.auth.uid && 
-                       request.resource.data.keys().hasAll(['ownerId', 'timestamp', 'muscleGroups']);
+      allow create: if isAuth() && request.resource.data.ownerId == request.auth.uid &&
+                       request.resource.data.timestamp != null;
       allow update: if isAuth() && resource.data.ownerId == request.auth.uid;
       allow delete: if isAuth() && resource.data.ownerId == request.auth.uid;
 
       // Trainers can read workouts of their trainees
       allow read: if isAuth() && 
+                     userExists(resource.data.ownerId) &&
                      get(/databases/$(database)/documents/users/$(resource.data.ownerId)).data.trainerId == request.auth.uid;
 
       // Exercises sub-collection
       match /exercises/{exerciseId} {
         allow read: if isAuth() && (
           request.auth.uid == get(/databases/$(database)/documents/workouts/$(workoutId)).data.ownerId ||
-          get(/databases/$(database)/documents/users/$(get(/databases/$(database)/documents/workouts/$(workoutId)).data.ownerId)).data.trainerId == request.auth.uid
+          (userExists(get(/databases/$(database)/documents/workouts/$(workoutId)).data.ownerId) &&
+           get(/databases/$(database)/documents/users/$(get(/databases/$(database)/documents/workouts/$(workoutId)).data.ownerId)).data.trainerId == request.auth.uid)
         );
         allow create, update, delete: if isAuth() && 
                                           request.auth.uid == get(/databases/$(database)/documents/workouts/$(workoutId)).data.ownerId;
       }
+    }
+
+    // Templates collection (workout templates)
+    match /templates/{templateId} {
+      // Users can read their own templates
+      allow read: if isAuth() && resource.data.ownerId == request.auth.uid;
+      // Users can create templates they own
+      allow create: if isAuth() && request.resource.data.ownerId == request.auth.uid &&
+                       request.resource.data.templateName != null && request.resource.data.exercises != null;
+      // Users can update their own templates
+      allow update: if isAuth() && resource.data.ownerId == request.auth.uid;
+      // Users can delete their own templates
+      allow delete: if isAuth() && resource.data.ownerId == request.auth.uid;
+    }
+
+    // Programs collection (trainer workout programs)
+    match /programs/{programId} {
+      // Trainers can read, create, update, delete their own programs
+      allow read: if isAuth() && resource.data.trainerId == request.auth.uid;
+      allow create: if isAuth() && request.resource.data.trainerId == request.auth.uid &&
+                       request.resource.data.name != null;
+      allow update: if isAuth() && resource.data.trainerId == request.auth.uid;
+      allow delete: if isAuth() && resource.data.trainerId == request.auth.uid;
+
+      // Trainees can read programs assigned to them
+      allow read: if isAuth() && resource.data.assignedTo != null && 
+                     (request.auth.uid in resource.data.assignedTo || 
+                      (userExists(request.auth.uid) &&
+                       get(/databases/$(database)/documents/users/$(request.auth.uid)).data.trainerId == resource.data.trainerId));
     }
 
     // Connections collection (trainer-trainee relationships)
@@ -90,6 +130,25 @@ service cloud.firestore {
         request.auth.uid == resource.data.trainerId || 
         request.auth.uid == resource.data.traineeId
       );
+    }
+
+    // Messages collection (trainer-trainee communication)
+    match /messages/{messageId} {
+      // Users can read messages where they're involved
+      allow read: if isAuth() && (
+        request.auth.uid == resource.data.senderId || 
+        request.auth.uid == resource.data.recipientId
+      );
+
+      // Any authenticated user can create a message
+      // (validation for correct sender ID is done in the app)
+      allow create: if isAuth();
+
+      // Users can only delete their own messages
+      allow delete: if isAuth() && resource.data.senderId == request.auth.uid;
+
+      // Users can update read status
+      allow update: if isAuth() && request.auth.uid == resource.data.recipientId;
     }
   }
 }
