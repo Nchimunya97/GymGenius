@@ -83,12 +83,17 @@ export function WorkoutTemplates({ onLoadTemplate }: WorkoutTemplatesProps) {
         {showForm && (
           <div className="bg-slate-800/50 rounded-lg p-4 mb-6 border border-purple-500/20 space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Template Name</label>
+              <label htmlFor="template-name" className="block text-sm font-medium mb-2">
+                Template Name
+              </label>
               <input
+                id="template-name"
                 type="text"
                 value={templateName}
                 onChange={e => setTemplateName(e.target.value)}
                 placeholder="e.g., Push Day, Leg Day, Full Body..."
+                title="Enter a name for your workout template"
+                aria-label="Template name"
                 className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-purple-500"
               />
             </div>

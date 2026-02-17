@@ -3,20 +3,29 @@ import { useAuth } from '@/contexts/AuthContext'
 
 export function Auth() {
   const [isSignUp, setIsSignUp] = useState(false)
+  const [isForgotPassword, setIsForgotPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [selectedRole, setSelectedRole] = useState<'trainer' | 'trainee' | 'admin'>('trainee')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { signInWithGoogle, signUpWithEmail, signInWithEmail } = useAuth()
+  const [successMessage, setSuccessMessage] = useState('')
+  const { signInWithGoogle, signUpWithEmail, signInWithEmail, resetPassword } = useAuth()
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setSuccessMessage('')
     setLoading(true)
 
     try {
-      if (isSignUp) {
-        await signUpWithEmail(email, password)
+      if (isForgotPassword) {
+        await resetPassword(email)
+        setSuccessMessage('Password reset link sent to your email!')
+        setEmail('')
+        setIsForgotPassword(false)
+      } else if (isSignUp) {
+        await signUpWithEmail(email, password, selectedRole)
       } else {
         await signInWithEmail(email, password)
       }
@@ -72,44 +81,122 @@ export function Auth() {
             </div>
           )}
 
+          {/* Success Message */}
+          {successMessage && (
+            <div className="mb-6 p-4 bg-green-900/40 border border-green-500/50 rounded-lg text-green-200 text-sm flex items-start gap-3">
+              <span className="text-lg">✅</span>
+              <span>{successMessage}</span>
+            </div>
+          )}
+
           {/* Form */}
           <form onSubmit={handleEmailAuth} className="space-y-4 mb-6">
             <div>
-              <label className="block text-sm font-semibold text-slate-200 mb-2">
+              <label htmlFor="email" className="block text-sm font-semibold text-slate-200 mb-2">
                 Email Address
               </label>
               <input
+                id="email"
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
                 disabled={loading}
+                title="Enter your email address to sign in or create an account"
+                aria-label="Email address"
                 className="w-full px-4 py-3 bg-slate-700/50 border border-amber-500/30 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:bg-slate-700 focus:ring-1 focus:ring-amber-500/50 disabled:opacity-50 transition"
                 placeholder="you@example.com"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-slate-200 mb-2">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                disabled={loading}
-                className="w-full px-4 py-3 bg-slate-700/50 border border-amber-500/30 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:bg-slate-700 focus:ring-1 focus:ring-amber-500/50 disabled:opacity-50 transition"
-                placeholder="••••••••"
-              />
-            </div>
+            {!isForgotPassword && (
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-semibold text-slate-200 mb-2"
+                >
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                  title="Enter your password (at least 6 characters)"
+                  aria-label="Password"
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-amber-500/30 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:bg-slate-700 focus:ring-1 focus:ring-amber-500/50 disabled:opacity-50 transition"
+                  placeholder="••••••••"
+                />
+              </div>
+            )}
+
+            {isSignUp && !isForgotPassword && (
+              <div>
+                <label className="block text-sm font-semibold text-slate-200 mb-2">I am a...</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { value: 'trainer', label: '👨‍🏫 Trainer', color: 'purple' },
+                    { value: 'trainee', label: '🏋️ Trainee', color: 'green' },
+                    { value: 'admin', label: '✅ Admin', color: 'amber' },
+                  ].map(role => (
+                    <button
+                      key={role.value}
+                      type="button"
+                      onClick={() => setSelectedRole(role.value as any)}
+                      className={`py-3 rounded-lg font-semibold transition border-2 ${
+                        selectedRole === role.value
+                          ? `border-${role.color}-500 bg-${role.color}-600/30 text-${role.color}-300`
+                          : `border-slate-600/50 bg-slate-700/30 text-slate-300 hover:bg-slate-700/50`
+                      }`}
+                    >
+                      {role.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <button
               type="submit"
               disabled={loading}
               className="w-full py-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition shadow-lg hover:shadow-xl text-lg"
             >
-              {loading ? '⏳ Loading...' : isSignUp ? '📝 Sign Up' : '🔓 Sign In'}
+              {loading
+                ? '⏳ Loading...'
+                : isForgotPassword
+                  ? '📧 Send Reset Link'
+                  : isSignUp
+                    ? '📝 Sign Up'
+                    : '🔓 Sign In'}
             </button>
           </form>
+
+          {/* Forgot Password Link */}
+          {!isSignUp && !isForgotPassword && (
+            <div className="mb-4 text-center">
+              <button
+                type="button"
+                onClick={() => setIsForgotPassword(true)}
+                className="text-amber-400 hover:text-amber-300 text-sm font-medium transition"
+              >
+                🔑 Forgot Password?
+              </button>
+            </div>
+          )}
+
+          {isForgotPassword && (
+            <div className="mb-4 text-center">
+              <button
+                type="button"
+                onClick={() => setIsForgotPassword(false)}
+                className="text-amber-400 hover:text-amber-300 text-sm font-medium transition"
+              >
+                ← Back to Sign In
+              </button>
+            </div>
+          )}
 
           {/* Divider */}
           <div className="flex items-center gap-3 mb-6">

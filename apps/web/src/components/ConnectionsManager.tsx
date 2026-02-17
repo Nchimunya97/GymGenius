@@ -294,13 +294,18 @@ export function ConnectionsManager() {
 
             {/* Request Trainer Search */}
             <div className="bg-white/5 rounded-lg p-4 mb-6 border border-slate-700/50">
-              <label className="block text-sm font-semibold mb-2">Request a Trainer by Email</label>
+              <label htmlFor="trainer-email" className="block text-sm font-semibold mb-2">
+                Request a Trainer by Email
+              </label>
               <div className="flex gap-2">
                 <input
+                  id="trainer-email"
                   type="email"
                   value={searchEmail}
                   onChange={e => setSearchEmail(e.target.value)}
                   placeholder="trainer@example.com"
+                  title="Enter trainer's email address to send a connection request"
+                  aria-label="Trainer email address"
                   className="flex-1 px-4 py-2 bg-slate-700 border border-amber-500/30 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-amber-500"
                 />
                 <button

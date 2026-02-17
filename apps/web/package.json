@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:all": "firebase emulators:start --project gymgenius-test --only firestore,auth & sleep 3 && vitest run && kill %1"
   },
   "dependencies": {
     "@repo/functions": "workspace:*",
@@ -19,9 +20,11 @@
     "@trpc/client": "^11.0.0-rc.660",
     "@trpc/react-query": "^11.0.0-rc.660",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.20.0"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^3.0.0",
     "@repo/config": "workspace:*",
     "@repo/eslint-config": "workspace:*",
     "@testing-library/jest-dom": "^6.6.3",

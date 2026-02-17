@@ -25,20 +25,8 @@ export const userRouter = router({
       createdAt: Date.now(),
     })),
 
-  list: publicProcedure.output(z.array(UserSchema)).query(() => [
-    {
-      uid: 'user-1',
-      email: 'user1@example.com',
-      role: 'trainee' as const,
-      displayName: 'User One',
-      createdAt: Date.now(),
-    },
-    {
-      uid: 'user-2',
-      email: 'user2@example.com',
-      role: 'trainer' as const,
-      displayName: 'User Two',
-      createdAt: Date.now(),
-    },
-  ]),
+  // Returns empty array - admin dashboard will fetch real users from Firestore directly
+  list: publicProcedure.output(z.array(UserSchema)).query(() => {
+    return []
+  }),
 })
